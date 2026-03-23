@@ -1,4 +1,4 @@
-# first_gent.py
+# helloAgent.py
 # 基于 Langchain 的 agent 示例
 
 from dotenv import load_dotenv
@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 # create_agent：1.0 基于 LangGraph 状态的智能执行体
 from langchain.agents import create_agent
 # 旧范式下的 Agent 调用方式
+from langchain_classic.agents import create_tool_calling_agent, AgentExecutor
 
 from langchain_community.tools import tool, TavilySearchResults
 
