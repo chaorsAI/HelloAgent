@@ -6,32 +6,18 @@ from langchain_community.tools import tool
 from langchain_core.prompts import PromptTemplate
 from langchain_tavily import TavilySearch
 
-from langchain.agents import create_agent, AgentType
+from langchain.agents import create_agent
 
 from langchain_classic.agents import AgentExecutor, create_react_agent, initialize_agent
 
 from models import get_lc_o_ali_model_client, ALI_TONGYI_MAX_MODEL
+from tool import calculator
 
 load_dotenv()
+
 # 初始化大模型客户端
 llm = get_lc_o_ali_model_client(model=ALI_TONGYI_MAX_MODEL)
 
-@tool
-def calculator(expression: str) -> str:
-    """使用Python的numexpr库计算表达式。表达式应该是解决问题的单行数学表达式。.
-    例子:
-        "37593 * 67"
-        "37593**(1/5)"
-        "37593^(1/5)"
-    """
-    local_dict = {"pi": math.pi, "e": math.e}
-    return str(
-        numexpr.evaluate(
-            expression.strip(),
-            global_dict={},
-            local_dict=local_dict,  # 添加常用数学函数
-        )
-    )
 # 设置工具
 search = TavilySearch(max_results=3)
 tools = [calculator,search]
