@@ -5,7 +5,8 @@ import langchain
 
 from langchain_classic.agents import AgentExecutor, create_self_ask_with_search_agent
 
-from langchain_community.tools.tavily_search import TavilyAnswer
+from langchain_tavily import TavilySearch
+
 from langchain_core.prompts import PromptTemplate
 
 from models import (
@@ -110,7 +111,7 @@ So the final answer is: 穆罕默德·阿里。
 '''
 prompt = PromptTemplate.from_template(template_template)
 
-tools = [TavilyAnswer(
+tools = [TavilySearch(
     max_results=1,
     include_raw_content=True,
     name="Intermediate Answer",
