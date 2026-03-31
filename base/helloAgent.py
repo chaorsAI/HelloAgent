@@ -16,7 +16,7 @@ from models import get_lc_o_ali_model_client
 
 
 # 从 .env 文件加载所有环境变量
-load_dotenv()
+# load_dotenv()
 
 # 定义工具
 @tool

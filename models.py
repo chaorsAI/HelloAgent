@@ -1,42 +1,33 @@
-#可用模型列表，以及获得访问模型的客户端
-#实际使用时可以根据自己的实际情况调整
-ALI_TONGYI_API_KEY_OS_VAR_NAME = "DASHSCOPE_API_KEY"
-ALI_TONGYI_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-
-ALI_TONGYI_MAX_MODEL = "qwen-max"
-ALI_TONGYI_MAX1_MODEL = "qwen-max-2025-01-25"
-ALI_TONGYI_PLUS_MODEL = "qwen-plus"
-ALI_TONGYI_PLUS1_MODEL = "qwen-plus-2025-09-11"
-ALI_TONGYI_PLUS_VL_MODEL = "qwen-vl-plus-2025-05-07"
-ALI_TONGYI_TURBO_MODEL = "qwen-turbo"
-ALI_TONGYI_DEEPSEEK_R1 = "deepseek-r1"
-ALI_TONGYI_DEEPSEEK_V3 = "deepseek-v3"
-ALI_TONGYI_GLM5_MODEL = "glm-5"
-
-ALI_TONGYI_EMBEDDING_MODEL = "text-embedding-v1"
-ALI_TONGYI_EMBEDDING_MODEL = "text-embedding-v1"
-ALI_TONGYI_EMBEDDING_MODEL = "text-embedding-v1"
-ALI_TONGYI_EMBEDDING_MODEL = "text-embedding-v1"
-
-
-DEEPSEEK_API_KEY_OS_VAR_NAME = "Deepseek_Key"
-DEEPSEEK_URL = "https://api.deepseek.com/v1"
-DEEPSEEK_CHAT_MODEL = "deepseek-chat"
-DEEPSEEK_REASONER_MODEL = "deepseek-reasoner"
-
-# LangSmith
-LANGSMITH_API_KEY_OS_VAR_NAME = "LANGSMITH_API_KEY"
-LANGSMITH_API_URL = "https://api.smith.langchain.com"
-
 
 import os
 from openai import OpenAI
 import inspect
+from dotenv import load_dotenv
 
 from langchain_openai import ChatOpenAI
 
 from langsmith import Client
 
+from autogen_ext.models.openai import OpenAIChatCompletionClient
+
+from Constant import *
+
+
+# 加载环境变量
+load_dotenv()
+
+def get_ag_ali_model_client():
+    return OpenAIChatCompletionClient(
+        model=ALI_TONGYI_MAX1_MODEL,
+        api_key=os.getenv(ALI_TONGYI_API_KEY_OS_VAR_NAME),
+        base_url=ALI_TONGYI_URL,
+        model_info={
+            "vision": True,           # 支持多模态（图片+文本）输入
+            "function_calling": True, # 支持工具/函数调用（核心Agent能力）
+            "json_output": True,      # 支持返回JSON格式数据
+            "family": "unknown",      # 模型所属系列（未分类），由于AutoGen最开始是兼容OpenAI的，这里除了OpenAI到的几个类型就都填"unknown"
+            "structured_output": True # 支持严格结构化输出
+        })
 
 def get_lc_o_model_client(api_key=os.getenv(ALI_TONGYI_API_KEY_OS_VAR_NAME),
                           base_url=ALI_TONGYI_URL,
