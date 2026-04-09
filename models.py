@@ -18,7 +18,7 @@ load_dotenv()
 
 def get_ag_ali_model_client():
     return OpenAIChatCompletionClient(
-        model=ALI_TONGYI_MAX1_MODEL,
+        model=ALI_TONGYI_MAX3,
         api_key=os.getenv(ALI_TONGYI_API_KEY_OS_VAR_NAME),
         base_url=ALI_TONGYI_URL,
         model_info={

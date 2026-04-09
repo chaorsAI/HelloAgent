@@ -1,0 +1,21 @@
+# FROM python:3.11-slim
+# docker内置
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm
+
+WORKDIR /app
+
+# 复制依赖
+COPY pyproject.toml uv.lock* ./
+RUN uv venv .venv && uv sync --no-dev --production
+
+# 复制项目文件
+COPY . .
+
+# 设置环境变量使用虚拟环境
+ENV PATH="/app/.venv/bin:$PATH"
+
+# 暴露端口
+EXPOSE 8000
+
+# 启动命令
+CMD ["uv", "run", "server.py"]
