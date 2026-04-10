@@ -1,7 +1,7 @@
 [project]
 name = "helloagent"
 version = "0.1.0"
-description = "Add your description here"
+description = "helloagent"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 
@@ -189,5 +189,20 @@ dependencies = [
     "yfinance>=1.2.0",
     "mplfinance>=0.12.10b0",
     "loguru>=0.7.3",
+    "langchain-mcp-adapters>=0.0.3",
+    "fastapi-mcp>=0.3.4",
+    "duckduckgo-search>=8.1.1",
+    "pandas-stubs==3.0.0.260204",
 ]
 
+# ✅ 核心：只做工作区，不做可安装包（关键！）
+[tool.uv]
+# 禁用 editable 安装，不触发 setuptools 构建
+editable = false
+
+# ✅ 启用 Workspace，声明所有子项目目录（members）
+[tool.uv.workspace]
+members = [
+    "mcp_base",
+    "mcp_stock_analysis_demo",
+]
