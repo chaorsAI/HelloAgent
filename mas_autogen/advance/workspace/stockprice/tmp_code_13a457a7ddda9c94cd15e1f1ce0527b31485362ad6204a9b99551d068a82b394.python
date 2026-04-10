@@ -1,0 +1,2 @@
+   df_week = yf.download(stock_symbol, period="5d")
+   

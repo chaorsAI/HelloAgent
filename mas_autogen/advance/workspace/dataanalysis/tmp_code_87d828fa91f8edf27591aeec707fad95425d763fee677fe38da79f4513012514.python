@@ -1,0 +1,6 @@
+     try:
+         data = pd.read_csv(url)
+     except Exception as e:
+         print(f"Error loading data: {e}")
+         exit(1)
+     

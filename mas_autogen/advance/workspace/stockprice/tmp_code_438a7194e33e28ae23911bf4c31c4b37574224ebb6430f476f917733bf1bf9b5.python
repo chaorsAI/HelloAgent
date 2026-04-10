@@ -1,0 +1,4 @@
+import matplotlib.pyplot as plt
+plt.plot([0,1],[10,20])
+plt.savefig('meituan_kline.png')
+print("✅")

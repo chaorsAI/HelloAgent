@@ -1,0 +1,169 @@
+import csv
+import urllib.request
+from io import StringIO
+import sys
+
+def download_csv(url):
+    """使用标准库下载CSV数据"""
+    try:
+        with urllib.request.urlopen(url) as response:
+            data = response.read().decode('utf-8')
+        return data
+    except Exception as e:
+        print(f"❌ 下载数据失败: {e}")
+        sys.exit(1)
+
+def parse_csv_data(csv_data):
+    """解析CSV数据"""
+    lines = csv_data.strip().split('\n')
+    if not lines:
+        print("❌ CSV数据为空")
+        sys.exit(1)
+    
+    # 使用csv模块解析
+    reader = csv.reader(lines)
+    headers = next(reader)
+    rows = list(reader)
+    
+    return headers, rows
+
+def find_columns(headers):
+    """查找重量和马力列"""
+    weight_col_idx = None
+    horsepower_col_idx = None
+    
+    for i, header in enumerate(headers):
+        header_lower = header.lower()
+        if 'weight' in header_lower:
+            weight_col_idx = i
+        elif 'horse' in header_lower or 'power' in header_lower:
+            horsepower_col_idx = i
+    
+    return weight_col_idx, horsepower_col_idx
+
+def extract_numeric_data(rows, weight_idx, horsepower_idx):
+    """提取数值数据"""
+    weight_data = []
+    horsepower_data = []
+    
+    for row in rows:
+        if len(row) <= max(weight_idx, horsepower_idx):
+            continue
+            
+        try:
+            weight_val = float(row[weight_idx]) if row[weight_idx] else None
+            hp_val = float(row[horsepower_idx]) if row[horsepower_idx] else None
+            
+            if weight_val is not None and hp_val is not None:
+                weight_data.append(weight_val)
+                horsepower_data.append(hp_val)
+        except (ValueError, TypeError):
+            continue
+    
+    return weight_data, horsepower_data
+
+def calculate_correlation(x_data, y_data):
+    """计算皮尔逊相关系数"""
+    if len(x_data) != len(y_data) or len(x_data) == 0:
+        return 0
+    
+    n = len(x_data)
+    sum_x = sum(x_data)
+    sum_y = sum(y_data)
+    sum_xy = sum(x * y for x, y in zip(x_data, y_data))
+    sum_x2 = sum(x * x for x in x_data)
+    sum_y2 = sum(y * y for y in y_data)
+    
+    numerator = n * sum_xy - sum_x * sum_y
+    denominator = ((n * sum_x2 - sum_x ** 2) * (n * sum_y2 - sum_y ** 2)) ** 0.5
+    
+    if denominator == 0:
+        return 0
+    return numerator / denominator
+
+def create_simple_plot(weight_data, horsepower_data, weight_col_name, hp_col_name):
+    """创建简单的文本可视化（由于无法使用matplotlib）"""
+    print(f"\n📊 {weight_col_name} vs {hp_col_name} 数据摘要:")
+    print(f"   数据点数量: {len(weight_data)}")
+    print(f"   重量范围: {min(weight_data):.1f} - {max(weight_data):.1f}")
+    print(f"   马力范围: {min(horsepower_data):.1f} - {max(horsepower_data):.1f}")
+    
+    correlation = calculate_correlation(weight_data, horsepower_data)
+    print(f"   相关系数: {correlation:.3f}")
+    
+    # 简单的ASCII散点图（小规模）
+    if len(weight_data) <= 50:
+        print(f"\n简易散点图预览 ({weight_col_name} vs {hp_col_name}):")
+        # 归一化到10x10网格
+        w_min, w_max = min(weight_data), max(weight_data)
+        h_min, h_max = min(horsepower_data), max(horsepower_data)
+        
+        if w_max == w_min or h_max == h_min:
+            print("   数据范围太小，无法显示图表")
+            return
+        
+        grid = [['.' for _ in range(20)] for _ in range(10)]
+        
+        for w, h in zip(weight_data[:50], horsepower_data[:50]):
+            x = int((w - w_min) / (w_max - w_min) * 19)
+            y = int((h - h_min) / (h_max - h_min) * 9)
+            grid[9-y][x] = '*'
+        
+        print("   " + "-" * 20)
+        for row in grid:
+            print("   " + "".join(row))
+        print("   " + "-" * 20)
+        print(f"   X轴: {weight_col_name}, Y轴: {hp_col_name}")
+
+def main():
+    url = "https://raw.githubusercontent.com/uwdata/draco/master/data/cars.csv"
+    
+    print("📥 下载数据...")
+    csv_data = download_csv(url)
+    
+    print("📋 解析数据...")
+    headers, rows = parse_csv_data(csv_data)
+    
+    print("字段列表:")
+    for i, header in enumerate(headers):
+        print(f"  {i}: {header}")
+    
+    print(f"\n数据形状: {len(rows)} 行, {len(headers)} 列")
+    
+    weight_idx, horsepower_idx = find_columns(headers)
+    
+    if weight_idx is None or horsepower_idx is None:
+        print("❌ 未找到重量或马力列")
+        print("可用列:", headers)
+        sys.exit(1)
+    
+    weight_col_name = headers[weight_idx]
+    horsepower_col_name = headers[horsepower_idx]
+    
+    print(f"\n🔍 找到列:")
+    print(f"   重量列: '{weight_col_name}' (索引 {weight_idx})")
+    print(f"   马力列: '{horsepower_col_name}' (索引 {horsepower_idx})")
+    
+    print("\n🧹 提取数值数据...")
+    weight_data, horsepower_data = extract_numeric_data(rows, weight_idx, horsepower_idx)
+    
+    if len(weight_data) == 0:
+        print("❌ 没有有效的数值数据")
+        sys.exit(1)
+    
+    print(f"✅ 提取到 {len(weight_data)} 个有效数据点")
+    
+    # 创建文本可视化
+    create_simple_plot(weight_data, horsepower_data, weight_col_name, horsepower_col_name)
+    
+    # 保存数据到简单文本文件（作为"图表"的替代）
+    with open('weight_vs_horsepower_data.txt', 'w') as f:
+        f.write(f"{weight_col_name},{horsepower_col_name}\n")
+        for w, h in zip(weight_data, horsepower_data):
+            f.write(f"{w},{h}\n")
+    
+    print(f"\n💾 数据已保存到 'weight_vs_horsepower_data.txt'")
+    print("\n🎉 任务完成！")
+
+if __name__ == "__main__":
+    main()

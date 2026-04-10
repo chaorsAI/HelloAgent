@@ -1,0 +1,6 @@
+   try:
+       import yfinance as yf
+   except ImportError:
+       print("请先运行: pip install yfinance mplfinance pandas matplotlib")
+       sys.exit(1)
+   

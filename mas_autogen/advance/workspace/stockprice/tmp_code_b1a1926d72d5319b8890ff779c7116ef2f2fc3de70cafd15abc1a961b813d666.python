@@ -1,0 +1,4 @@
+# 删除这行：
+# import numpy as np
+
+# 其余代码无需修改，因为未实际使用 numpy 功能

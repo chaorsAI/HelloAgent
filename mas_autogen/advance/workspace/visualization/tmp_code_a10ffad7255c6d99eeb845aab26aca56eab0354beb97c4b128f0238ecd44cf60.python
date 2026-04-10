@@ -1,0 +1,82 @@
+# 首先确保安装必要的包
+try:
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    import requests
+except ImportError as e:
+    print(f"缺少必要的包: {e}")
+    print("请运行以下命令安装依赖:")
+    print("pip install pandas matplotlib seaborn requests")
+    exit(1)
+
+from io import StringIO
+
+# 下载数据
+url = "https://raw.githubusercontent.com/uwdata/draco/master/data/cars.csv"
+try:
+    response = requests.get(url)
+    response.raise_for_status()  # 检查HTTP错误
+    df = pd.read_csv(StringIO(response.text))
+except Exception as e:
+    print(f"下载或读取数据失败: {e}")
+    exit(1)
+
+# 打印数据集中的字段
+print("数据集中的字段：")
+print(list(df.columns))
+print(f"\n数据形状: {df.shape}")
+print("\n前5行数据:")
+print(df.head())
+
+# 查找重量和马力相关的列
+weight_col = None
+horsepower_col = None
+
+# 检查常见的列名
+for col in df.columns:
+    if 'weight' in col.lower():
+        weight_col = col
+    elif 'horse' in col.lower() or 'power' in col.lower():
+        horsepower_col = col
+
+print(f"\n识别到的重量列: {weight_col}")
+print(f"识别到的马力列: {horsepower_col}")
+
+if weight_col is None or horsepower_col is None:
+    print("错误: 未找到重量或马力列")
+    print("可用的列:", list(df.columns))
+    exit(1)
+
+# 清理数据
+plot_data = df[[weight_col, horsepower_col]].copy()
+plot_data = plot_data.dropna()
+
+# 转换为数值类型
+plot_data[weight_col] = pd.to_numeric(plot_data[weight_col], errors='coerce')
+plot_data[horsepower_col] = pd.to_numeric(plot_data[horsepower_col], errors='coerce')
+plot_data = plot_data.dropna()
+
+if len(plot_data) == 0:
+    print("错误: 清理后没有有效数据")
+    exit(1)
+
+# 创建可视化
+plt.figure(figsize=(10, 6))
+plt.scatter(plot_data[weight_col], plot_data[horsepower_col], alpha=0.6)
+plt.xlabel(weight_col)
+plt.ylabel(horsepower_col)
+plt.title(f'{weight_col} vs {horsepower_col}')
+
+# 添加趋势线
+sns.regplot(x=weight_col, y=horsepower_col, data=plot_data, scatter=False, color='red')
+
+# 保存图像
+plt.savefig('weight_vs_horsepower.png', dpi=300, bbox_inches='tight')
+print("\n✅ 图像已成功保存为 'weight_vs_horsepower.png'")
+
+# 显示相关系数
+correlation = plot_data[weight_col].corr(plot_data[horsepower_col])
+print(f"📊 重量和马力的相关系数: {correlation:.3f}")
+
+plt.show()

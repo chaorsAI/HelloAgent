@@ -1,0 +1,5 @@
+   import yfinance as yf
+   df = yf.download("3690.HK", period="5d")
+   print(df.shape)
+   print(df.head())
+   

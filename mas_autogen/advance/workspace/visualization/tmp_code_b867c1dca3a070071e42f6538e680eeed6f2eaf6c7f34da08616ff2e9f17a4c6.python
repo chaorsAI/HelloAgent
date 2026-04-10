@@ -1,0 +1,12 @@
+   import time
+   def download_with_retry(url, max_retries=3):
+       for attempt in range(max_retries):
+           try:
+               # 下载逻辑
+               return data
+           except Exception as e:
+               if attempt < max_retries - 1:
+                   time.sleep(2 ** attempt)  # 指数退避
+               else:
+                   raise
+   

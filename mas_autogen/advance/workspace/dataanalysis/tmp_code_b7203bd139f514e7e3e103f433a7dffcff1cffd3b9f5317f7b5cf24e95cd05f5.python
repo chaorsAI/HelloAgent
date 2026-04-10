@@ -1,0 +1,79 @@
+# 检查并安装必要的库
+import sys
+import subprocess
+
+
+def install_package(package):
+    """尝试安装指定的Python包"""
+    print(f"正在安装 {package}...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+    print(f"{package} 安装完成。")
+
+
+# 确保安装所需的库
+try:
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+except ImportError:
+    print("正在安装所需的库...")
+    install_package("pandas")
+    install_package("matplotlib")
+    install_package("seaborn")
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+# 下载数据
+url = "https://raw.githubusercontent.com/vega/vega/main/docs/data/seattle-weather.csv"
+try:
+    data = pd.read_csv(url)
+except Exception as e:
+    print(f"加载数据时出错: {e}")
+    print("请检查网络连接或URL是否正确。")
+    exit(1)
+
+# 打印数据集中的字段
+print("数据集中的字段:")
+print(data.columns.tolist())
+
+# 字段说明
+field_descriptions = {
+    "date": "日期",
+    "precipitation": "降水量 (英寸)",
+    "temp_max": "最高温度 (华氏度)",
+    "temp_min": "最低温度 (华氏度)",
+    "wind": "风速 (mph)",
+    "weather": "天气类型",
+}
+print("\n字段说明:")
+for field, description in field_descriptions.items():
+    print(f"{field}: {description}")
+
+# 统计每种天气的数量
+weather_counts = data["weather"].value_counts()
+
+# 打印每种天气的数量
+print("\n每种天气的数量:")
+print(weather_counts)
+
+# 可视化数据
+sns.set(style="whitegrid")
+plt.figure(figsize=(10, 6))
+sns.countplot(data=data, x="weather", order=weather_counts.index, palette="Set2")
+plt.title("Seattle Weather Counts", fontsize=16)
+plt.xlabel("Weather Type", fontsize=14)
+plt.ylabel("Count", fontsize=14)
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=12)
+
+# 保存图表到文件
+output_file = "seattle_weather_counts.png"
+plt.savefig(output_file)
+print(f"\n图表已保存到文件: {output_file}")
+
+# 显示图表（仅在支持图形界面的环境中使用）
+# plt.show()
+
+# 接受评论者的反馈以改进代码
+# 如果有反馈，请告诉我如何改进代码。

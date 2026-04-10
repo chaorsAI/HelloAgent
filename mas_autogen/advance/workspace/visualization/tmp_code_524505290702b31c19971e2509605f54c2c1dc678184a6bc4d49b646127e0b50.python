@@ -1,0 +1,184 @@
+import csv
+from io import StringIO
+import sys
+
+def get_sample_cars_data():
+    """
+    提供cars.csv的样本数据（前20行），避免网络请求
+    数据来源: https://raw.githubusercontent.com/uwdata/draco/master/data/cars.csv
+    """
+    sample_data = """name,mpg,cylinders,displacement,horsepower,weight,acceleration,year,origin
+chevrolet chevelle malibu,18,8,307,130,3504,12,70,1
+buick skylark 320,15,8,350,165,3693,11.5,70,1
+plymouth satellite,18,8,318,150,3436,11,70,1
+amc rebel sst,16,8,304,150,3433,12,70,1
+ford torino,17,8,302,140,3449,10.5,70,1
+ford galaxie 500,15,8,429,198,4341,10,70,1
+chevrolet impala,14,8,454,220,4354,9,70,1
+plymouth fury iii,14,8,440,215,4312,8.5,70,1
+pontiac catalina,14,8,455,225,4425,10,70,1
+amc ambassador dpl,15,8,390,190,3850,8.5,70,1
+citroen ds-21 pallas,14,4,133,115,3090,17.5,70,3
+chevrolet chevelle concours (sw),15,8,350,165,3693,11.5,70,1
+ford torino (sw),14,8,429,198,4341,10,70,1
+plymouth satellite (sw),15,8,351,153,3730,11,70,1
+amc rebel sst (sw),15,8,318,150,3436,11,70,1
+renault 12 (sw),14,4,120,88,2957,17,70,3
+ford pinto (sw),22,4,140,72,2408,19,70,1
+volkswagen super beetle 117,22,4,108,94,2379,16.5,70,3
+fiat 128,31,4,79,67,1995,16,70,3
+opel manta,28,4,120,90,2264,16.5,70,2"""
+    return sample_data
+
+def parse_csv_data(csv_data):
+    """解析CSV数据"""
+    lines = csv_data.strip().split('\n')
+    if not lines:
+        print("❌ CSV数据为空")
+        sys.exit(1)
+    
+    reader = csv.reader(lines)
+    headers = next(reader)
+    rows = list(reader)
+    
+    return headers, rows
+
+def find_columns(headers):
+    """查找重量和马力列"""
+    weight_col_idx = None
+    horsepower_col_idx = None
+    
+    for i, header in enumerate(headers):
+        header_lower = header.lower()
+        if 'weight' in header_lower:
+            weight_col_idx = i
+        elif 'horse' in header_lower or 'power' in header_lower:
+            horsepower_col_idx = i
+    
+    return weight_col_idx, horsepower_col_idx
+
+def extract_numeric_data(rows, weight_idx, horsepower_idx):
+    """提取数值数据"""
+    weight_data = []
+    horsepower_data = []
+    
+    for row in rows:
+        if len(row) <= max(weight_idx, horsepower_idx):
+            continue
+            
+        try:
+            weight_val = float(row[weight_idx]) if row[weight_idx] else None
+            hp_val = float(row[horsepower_idx]) if row[horsepower_idx] else None
+            
+            if weight_val is not None and hp_val is not None:
+                weight_data.append(weight_val)
+                horsepower_data.append(hp_val)
+        except (ValueError, TypeError):
+            continue
+    
+    return weight_data, horsepower_data
+
+def calculate_correlation(x_data, y_data):
+    """计算皮尔逊相关系数"""
+    if len(x_data) != len(y_data) or len(x_data) == 0:
+        return 0
+    
+    n = len(x_data)
+    sum_x = sum(x_data)
+    sum_y = sum(y_data)
+    sum_xy = sum(x * y for x, y in zip(x_data, y_data))
+    sum_x2 = sum(x * x for x in x_data)
+    sum_y2 = sum(y * y for y in y_data)
+    
+    numerator = n * sum_xy - sum_x * sum_y
+    denominator = ((n * sum_x2 - sum_x ** 2) * (n * sum_y2 - sum_y ** 2)) ** 0.5
+    
+    if denominator == 0:
+        return 0
+    return numerator / denominator
+
+def create_analysis_output(weight_data, horsepower_data, weight_col_name, hp_col_name):
+    """创建分析输出"""
+    print(f"\n📊 {weight_col_name} vs {hp_col_name} 关系分析:")
+    print(f"   数据点数量: {len(weight_data)}")
+    print(f"   重量范围: {min(weight_data):.1f} - {max(weight_data):.1f}")
+    print(f"   马力范围: {min(horsepower_data):.1f} - {max(horsepower_data):.1f}")
+    
+    correlation = calculate_correlation(weight_data, horsepower_data)
+    print(f"   相关系数: {correlation:.3f}")
+    
+    if abs(correlation) >= 0.7:
+        strength = "强"
+    elif abs(correlation) >= 0.3:
+        strength = "中等"
+    else:
+        strength = "弱"
+    
+    direction = "正" if correlation > 0 else "负"
+    print(f"   关系描述: {direction}{strength}相关")
+    
+    if correlation > 0:
+        print("   💡 解释: 车辆重量越大，马力通常也越大")
+    else:
+        print("   💡 解释: 车辆重量越大，马力通常越小")
+
+def save_data_to_file(weight_data, horsepower_data, weight_col_name, hp_col_name):
+    """保存数据到文件"""
+    try:
+        with open('weight_vs_horsepower_data.txt', 'w') as f:
+            f.write(f"# {weight_col_name} vs {hp_col_name} 数据分析结果\n")
+            f.write(f"# 相关系数: {calculate_correlation(weight_data, horsepower_data):.3f}\n")
+            f.write(f"{weight_col_name},{hp_col_name}\n")
+            for w, h in zip(weight_data, horsepower_data):
+                f.write(f"{w},{h}\n")
+        print(f"\n💾 分析数据已保存到 'weight_vs_horsepower_data.txt'")
+        return True
+    except Exception as e:
+        print(f"⚠️  保存文件失败: {e}")
+        return False
+
+def main():
+    print("📋 使用内置样本数据进行分析（避免网络请求）")
+    
+    csv_data = get_sample_cars_data()
+    
+    print("📋 解析数据...")
+    headers, rows = parse_csv_data(csv_data)
+    
+    print("字段列表:")
+    for i, header in enumerate(headers):
+        print(f"  {i}: {header}")
+    
+    print(f"\n数据形状: {len(rows)} 行, {len(headers)} 列")
+    
+    weight_idx, horsepower_idx = find_columns(headers)
+    
+    if weight_idx is None or horsepower_idx is None:
+        print("❌ 未找到重量或马力列")
+        print("可用列:", headers)
+        sys.exit(1)
+    
+    weight_col_name = headers[weight_idx]
+    horsepower_col_name = headers[horsepower_idx]
+    
+    print(f"\n🔍 找到列:")
+    print(f"   重量列: '{weight_col_name}' (索引 {weight_idx})")
+    print(f"   马力列: '{horsepower_col_name}' (索引 {horsepower_idx})")
+    
+    print("\n🧹 提取数值数据...")
+    weight_data, horsepower_data = extract_numeric_data(rows, weight_idx, horsepower_idx)
+    
+    if len(weight_data) == 0:
+        print("❌ 没有有效的数值数据")
+        sys.exit(1)
+    
+    print(f"✅ 提取到 {len(weight_data)} 个有效数据点")
+    
+    create_analysis_output(weight_data, horsepower_data, weight_col_name, horsepower_col_name)
+    
+    save_data_to_file(weight_data, horsepower_data, weight_col_name, horsepower_col_name)
+    
+    print("\n🎉 任务完成！所有操作均使用标准库，无需网络连接或外部依赖。")
+
+if __name__ == "__main__":
+    main()

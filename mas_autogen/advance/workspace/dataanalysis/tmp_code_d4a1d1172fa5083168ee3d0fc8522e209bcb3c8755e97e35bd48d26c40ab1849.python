@@ -1,0 +1,13 @@
+     try:
+         import pandas as pd
+         import matplotlib.pyplot as plt
+         import seaborn as sns
+     except ImportError:
+         print("正在安装所需的库...")
+         install_package("pandas")
+         install_package("matplotlib")
+         install_package("seaborn")
+         import pandas as pd
+         import matplotlib.pyplot as plt
+         import seaborn as sns
+     
