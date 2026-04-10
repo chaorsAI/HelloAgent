@@ -205,4 +205,5 @@ editable = false
 members = [
     "mcp_base",
     "mcp_stock_analysis_demo",
+    "a2a_base",
 ]

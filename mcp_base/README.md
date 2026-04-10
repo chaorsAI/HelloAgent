@@ -16,11 +16,10 @@ mcp_base/
 ```
 
 ## 功能说明
+1. BMI计算
+2. server-Resource 获取演示 
+3. server-Prompt 获取演示
 
-### 1. 计算器功能
-- 支持基本的四则运算
-- 支持复杂的数学表达式
-- 包含错误处理和输入验证
 
 ## 安装说明
 
@@ -31,12 +30,12 @@ uv sync --package mcp_base
 
 2启动FastMCP服务
 ```bash
-python client/bmi_server.py
+python client/a2a_server.py
 ```
 
 3运行客户端：
 ```bash
-python client/bmi_client.py
+python client/a2a_client.py
 ```
 
 ## 技术栈
