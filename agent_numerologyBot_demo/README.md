@@ -55,7 +55,7 @@ uv sync
 ### 2. 启动服务
 
 ```bash
-python server.py
+python stock_server.py
 ```
 
 默认会在本地 http://127.0.0.1:8000/ 启动 Web 服务。
